@@ -1,12 +1,12 @@
 TARGET=attiny2313
 ISP=usbasp
 ISPSETTING=
-SPEED = 4000000
+SPEED = 8000000
 AVRDUDE = avrdude 
 
 COMPILE = avr-gcc -Wall -Os -mmcu=$(TARGET) -DF_CPU=$(SPEED)
 
-OBJECTS = main.o dm_lcd.o
+OBJECTS = main.o lib/dm_lcd.o lib/uart.o
 
 .c.o:
 	$(COMPILE) -c $< -o $@

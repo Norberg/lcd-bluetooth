@@ -1,6 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
-#include "dm_lcd.h"
+#include "lib/dm_lcd.h"
 
 int main()
 {
