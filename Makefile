@@ -2,11 +2,12 @@ TARGET=attiny2313
 ISP=usbasp
 ISPSETTING=
 SPEED = 8000000
+UART_BAUD = 9600
 AVRDUDE = avrdude 
 
-COMPILE = avr-gcc -Wall -Os -mmcu=$(TARGET) -DF_CPU=$(SPEED)
+COMPILE = avr-gcc -Wall -Os -mmcu=$(TARGET) -DF_CPU=$(SPEED) -DUART_BAUD=$(UART_BAUD)
 
-OBJECTS = main.o lib/dm_lcd.o lib/uart.o
+OBJECTS = main.o lib/dm_lcd.o lib/uart.o lib/uart_helper.o
 
 .c.o:
 	$(COMPILE) -c $< -o $@
