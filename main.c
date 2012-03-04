@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <stdlib.h>
 #include <util/delay.h>
 #include "lib/dm_lcd.h"
 #include "lib/uart.h"
@@ -21,22 +22,33 @@ void lcd_put_spaces(uint8_t amount)
 		lcd_putc(' ');
 }
 
+char get_char()
+{
+	uint16_t c;
+	while(1)
+	{
+		c = uart_getc();
+		if(!uart_available(c))
+			continue;
+		else
+			return (char)c;
+	}
+
+}
 int main()
 {
-	char buffer [LINE_LENGTH];
-	uint8_t len;
+	uint8_t c;
+	char buffer[4];
 	init();
 	lcd_puts_P("AVR Started\n");
 	uart_puts_P("AVR started\n");
 	while(1)
 	{
-		len = readline(buffer, LINE_LENGTH);
-		uart_puts_P("Recived: ");
-		uart_puts(buffer);
-		lcd_puts(buffer);
-		lcd_put_spaces(LINE_LENGTH - len);	
-		lcd_putc('\n');	
+		c = get_char();
+		if(c == 0xfe)
+			lcd_command(get_char());
+		else
+			lcd_data(c);
 	}
-	lcd_puts_P("Bye, bye!\n");
 	return 0;
 }
