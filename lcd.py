@@ -3,50 +3,57 @@ HOST = ''
 PORT = 3170
 
 class Bluetooth(threading.Thread):
-	def __init__(self, queue, resp_queue):
+	def __init__(self, queue):
 		threading.Thread.__init__(self)
+		self.init_serial()
+		self.queue = queue
+
+	def init_serial(self):
 		self.ser = serial.Serial(port="/dev/rfcomm1",baudrate=9600,timeout=3)
 		self.ser.open()
-		self.queue = queue
-		self.resp_queue = resp_queue
+
 	def run(self):
 		while 1:
-			msg = self.queue.get()
-			resp = self.send_cmd(msg)
-			self.resp_queue.put(resp)
-			self.queue.task_done()		
-	def send_cmd(self, msg):
-		if self.ser.inWaiting() > 0:
-			return "Error: Old input: " + self.ser.read(self.ser.inWaiting())
+			try:
+				msg = self.queue.get()
+				print "sending...", msg, "to bluetooth" 
+				self.send(msg)
+			except Exception as e:
+				print "exception when sending to bluetooth:", e
+				print "trying to recreate connection.."
+				self.ser.close()
+				self.ser.open()
+				print "connection recreated.."
+			finally:
+				self.queue.task_done()
+
+	def send(self, msg):
 		self.ser.write(msg)
-		response = self.ser.readline()
 		if self.ser.inWaiting() > 0:
-			return "Error: Unhandled input: " + response + self.ser.read(self.ser.inWaiting())
-		else:
-			return response
+			print "Error: " + self.ser.read(self.ser.inWaiting())
+
+
 
 
 class Handler(threading.Thread):
-	def __init__(self,conn, queue, resp_queue):
+	def __init__(self, conn, queue):
 		threading.Thread.__init__(self)
 		self.conn = conn
+		self.conn.setblocking(1)
 		self.queue = queue
-		self.resp_queue = resp_queue
 	def run(self):
 		try:
 			print "got connection"
-			input = self.conn.recv(1024)
-			print "recv", input
-			self.queue.put(input)
-			print "waiting on response"
-			resp = self.resp_queue.get()
-			print "got response"
-			self.conn.send(resp)
-		except socket.error:
-			print "socket.error"
-			self.conn.close()
+			while 1:
+				input = self.conn.recv(1024)
+				if not input:
+					break
+				print "recv", input
+				self.queue.put(input)
+		except socket.error as e:
+			print "socket.error:", e
 		finally:
-			self.resp_queue.task_done()
+			self.conn.close()
 
 
 class Server(threading.Thread): 
@@ -57,9 +64,8 @@ class Server(threading.Thread):
 		self.socket.bind((HOST,PORT))
 		self.socket.listen(5)
 		self.queue = Queue.Queue()
-		self.resp_queue = Queue.Queue()
 		print "going to start bluetooth stuffs"
-		self.bluetooth = Bluetooth(self.queue, self.resp_queue)
+		self.bluetooth = Bluetooth(self.queue)
 		print "init bluetooth"
 		self.bluetooth.start()
 		print "bluetooth thread running"
@@ -69,7 +75,7 @@ class Server(threading.Thread):
 			conn,addr = self.socket.accept()
 			conn.settimeout(1)
 			print "got connection..."
-			handler = Handler(conn, self.queue, self.resp_queue)
+			handler = Handler(conn, self.queue)
 			handler.start()
 			print "spawned handler.."
 def main():
