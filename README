@@ -1,0 +1,18 @@
+LCD Bluetooth
+
+Hardware:
+AVR ATTiny2313
+Bluetooth UART module: eg. http://www.dealextreme.com/p/wireless-bluetooth-rs232-ttl-transceiver-module-80711?item=1
+HD44780 compatible LCD display
+
+How to connect the hardware:
+AVR -> LCD
+Choose PINS to use in lib/dm_lcd.h
+AVR -> Bluetooth
+Connect the bluetooth modules rx/tx with the avrs tx/rx
+
+Protocol:
+First byte after the controll character 0xfe will be treated as a HD44780 command, all other bytes as regular data(eg. chars printed to the display)  
+
+Pic of the working hardware:
+http://imgur.com/F32Fb
