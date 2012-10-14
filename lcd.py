@@ -9,7 +9,7 @@ class Bluetooth(threading.Thread):
 		self.queue = queue
 
 	def init_serial(self):
-		self.ser = serial.Serial(port="/dev/rfcomm1",baudrate=9600,timeout=3)
+		self.ser = serial.Serial(port="/dev/rfcomm0",baudrate=9600,timeout=3)
 		self.ser.open()
 
 	def run(self):
