@@ -49,8 +49,11 @@ class PageScheduler():
 		self.switch_time = switch_time
 			
 	def run(self):
-		while 1:	
-			self.switch_page()			
+		while 1:
+			try:	
+				self.switch_page()
+			except Exception as e:
+				print "Exception: ", e
 
 	def switch_page(self):
 		self.pages.next_page()

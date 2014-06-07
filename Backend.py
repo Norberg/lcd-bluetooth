@@ -10,7 +10,6 @@ class Bluetooth(threading.Thread):
 
 	def init_serial(self):
 		self.ser = serial.Serial(port="/dev/rfcomm0",baudrate=9600,timeout=3)
-		self.ser.open()
 
 	def run(self):
 		while 1:
